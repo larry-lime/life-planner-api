@@ -10,7 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def main():
@@ -37,30 +37,61 @@ def main():
     try:
         service = build("calendar", "v3", credentials=creds)
 
-        # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
-        print("Getting the upcoming 10 events")
-        events_result = (
-            service.events()
-            .list(
-                calendarId="primary",
-                timeMin=now,
-                maxResults=10,
-                singleEvents=True,
-                orderBy="startTime",
-            )
-            .execute()
-        )
-        events = events_result.get("items", [])
+        event = {
+            "summary": "First Calendar event created by API",
+            "location": "Test Location",
+            "description": "A chance to hear more about Google's developer products.",
+            "start": {
+                # Start on Tuesday April 11th 2023 at 3pm china time, end on Tuesday April 11th 2023 at 4pm china time
+                # 2023-04-08T16:55:48Z
+                "dateTime": "2023-04-08T16:55:48Z",
+                "timeZone": "Asia/Shanghai",
+            },
+            "end": {
+                "dateTime": "2023-04-08T17:55:48Z",
+                "timeZone": "Asia/Shanghai",
+            },
+            # "recurrence": ["RRULE:FREQ=DAILY;COUNT=2"],
+            # "attendees": [
+            #     {"email": "lpage@example.com"},
+            #     {"email": "sbrin@example.com"},
+            # ],
+            # "reminders": {
+            #     "useDefault": False,
+            #     "overrides": [
+            #         {"method": "email", "minutes": 24 * 60},
+            #         {"method": "popup", "minutes": 10},
+            #     ],
+            # },
+        }
 
-        if not events:
-            print("No upcoming events found.")
-            return
+        event = service.events().insert(calendarId="primary", body=event).execute()
+        print(f"Event created: {event.get('htmlLink')}")
+
+        # Call the Calendar API
+        # now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
+        # print("Getting the upcoming 10 events")
+        # events_result = (
+        #     service.events()
+        #     .list(
+        #         calendarId="primary",
+        #         timeMin=now,
+        #         maxResults=10,
+        #         singleEvents=True,
+        #         orderBy="startTime",
+        #     )
+        #     .execute()
+        # )
+        # events = events_result.get("items", [])
+
+        # if not events:
+        #     print("No upcoming events found.")
+        #     return
 
         # Prints the start and name of the next 10 events
-        for event in events:
-            start = event["start"].get("dateTime", event["start"].get("date"))
-            print(start, event["summary"])
+        # for event in events:
+        #     start = event["start"].get("dateTime", event["start"].get("date"))
+        #     print(start, event["summary"])
 
     except HttpError as error:
         print("An error occurred: %s" % error)
